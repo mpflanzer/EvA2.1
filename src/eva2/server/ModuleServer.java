@@ -162,28 +162,35 @@ public class ModuleServer {
 					adapterName = new String(m_ModuleAdapterCounter + "_Running_" +
 							selectedModuleName);
 
-					Constructor<?>[] constructorArr = module.getConstructors();
-					// create a module instance
-					if ((goParams==null && noGuiLogFile==null) || !module.equals(GOModuleAdapter.class)) {
-						if (goParams!=null) System.err.println("Cant set params - no matching constructor found for " + adapterName + " (ModuleServer)");
-						if (noGuiLogFile!=null) System.err.println("Cant deactivate GUI - no matching constructor found for " + adapterName + " (ModuleServer)");
-						Object[] Para = new Object[2];
-						Class<?> paramTypes[] = (constructorArr[0]).getParameterTypes();
-						Para[0] = paramTypes[0].cast(adapterName);
-						Para[1] = paramTypes[1].cast(Client);
-						m_ModuleAdapter = (ModuleAdapter) constructorArr[0].newInstance(Para);
-					} else {
-						Object[] Para = new Object[4];
-						Para[0] = (String)adapterName;
-						Para[1] = (InterfaceGOParameters)goParams;
-						Para[2] = (String)noGuiLogFile;
-						Para[3] = (MainAdapterClient)Client;
-						int constrIndex=0;
-						while ((constructorArr[constrIndex].getParameterTypes().length!=4) && (constrIndex < constructorArr.length)) { 
-							constrIndex++;
-						}
-						m_ModuleAdapter = (ModuleAdapter) constructorArr[constrIndex].newInstance(Para);
-					}
+                    Constructor<?>[] constructorArr = module.getConstructors();
+                    // create a module instance
+                    if ((goParams==null && noGuiLogFile==null) || !module.equals(GOModuleAdapter.class)) {
+                        if (goParams!=null) System.err.println("Cant set params - no matching constructor found for " + adapterName + " (ModuleServer)");
+                        if (noGuiLogFile!=null) System.err.println("Cant deactivate GUI - no matching constructor found for " + adapterName + " (ModuleServer)");
+
+                        // FIX for wrong parameter count
+                        int constrIndex=0;
+                        while ((constructorArr[constrIndex].getParameterTypes().length!=2) && (constrIndex < constructorArr.length)) { 
+                            constrIndex++;
+                        }
+                        
+                        Object[] Para = new Object[2];
+                        Class<?> paramTypes[] = (constructorArr[constrIndex]).getParameterTypes();
+                        Para[0] = paramTypes[0].cast(adapterName);
+                        Para[1] = paramTypes[1].cast(Client);
+                        m_ModuleAdapter = (ModuleAdapter) constructorArr[constrIndex].newInstance(Para);
+                    } else {
+                        Object[] Para = new Object[4];
+                        Para[0] = (String)adapterName;
+                        Para[1] = (InterfaceGOParameters)goParams;
+                        Para[2] = (String)noGuiLogFile;
+                        Para[3] = (MainAdapterClient)Client;
+                        int constrIndex=0;
+                        while ((constructorArr[constrIndex].getParameterTypes().length!=4) && (constrIndex < constructorArr.length)) { 
+                            constrIndex++;
+                        }
+                        m_ModuleAdapter = (ModuleAdapter) constructorArr[constrIndex].newInstance(Para);
+                    }
 					if (!runWithoutRMI) { // if we're using RMI, send the object to a remote server
 //						for this to work the class of m_ModuleAdapter itself must implement the ModuleAdapter interface
 //						for a strange reason, it is _not_ enough if a superclass implements the same interface! 
